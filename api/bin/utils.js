@@ -25,7 +25,29 @@ export const getDirContents = (dir) =>
     return contents;
   }, {});
 
-const getRawString = (str) => String.raw`${str}`;
+const spaceProtected = (str) => {
+  const linuxSpaceProtected =
+    str.split('/').length > 1
+      ? str
+          .split('/')
+          .map((substr) =>
+            substr.split(' ').length < 2 ? substr : `"${substr}"`,
+          )
+          .join('/')
+      : str;
+
+  // windowsSpaceProtected
+  return linuxSpaceProtected.split('\\').length > 1
+    ? linuxSpaceProtected
+        .split('\\')
+        .map((substr) =>
+          substr.split(' ').length < 2 ? substr : `"${substr}"`,
+        )
+        .join('\\')
+    : linuxSpaceProtected;
+};
+
+const getProtectedRawString = (str) => spaceProtected(String.raw`${str}`);
 
 const convertMapToString = (map) =>
   `{
@@ -33,7 +55,7 @@ const convertMapToString = (map) =>
       (str, key) => `${str}
         ${key}: ${
         typeof map[key] === 'string'
-          ? `require(String.raw\`${map[key]}\`).default`
+          ? `require(${getProtectedRawString(map[key])}).default`
           : convertMapToString(map[key])
       },
       `,
