@@ -48,6 +48,7 @@ export default class User extends BaseModelService {
           dateTimeRange,
           excludeEvents,
         },
+        viewer,
       ])
     )[0];
   }
@@ -142,5 +143,17 @@ export default class User extends BaseModelService {
       { user_id: this._instance.id, session_id: token },
       config.app.secret,
     );
+  }
+
+  @saveInstance
+  @requireInstance
+  async restore() {
+    const count = await Models.User.restore({
+      where: { id: this.instance.id },
+    });
+
+    if (count) return null;
+
+    return this.instance;
   }
 }

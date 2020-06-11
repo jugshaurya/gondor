@@ -211,6 +211,17 @@ class ModelForm extends BaseModelService {
       );
   }
 
+  async preRestore() {
+    if (
+      !(await AuthPolicy.can(this.viewer)
+        .perform(`${this.name}:restore`)
+        .on(this.instance))
+    )
+      throw new ForbiddenError(
+        `User is not authorized to perform this action.`,
+      );
+  }
+
   @saveInstance
   async create() {
     await this.beforeAll?.call(this);
@@ -247,6 +258,20 @@ class ModelForm extends BaseModelService {
     if (!success)
       throw new UserInputError(`No ${this.text || this.name} found to delete`);
     this.afterDelete?.call(this);
+
+    return this.instance;
+  }
+
+  @saveInstance
+  async restore() {
+    await this.beforeAll?.call(this);
+    await this.beforeRestore?.call(this);
+    await this.preRestore?.call(this);
+    const success =
+      (await this._handleErrors(() => this.onRestore?.call(this))) === null;
+    if (!success)
+      throw new UserInputError(`No ${this.text || this.name} found to restore`);
+    this.afterRestore?.call(this);
 
     return this.instance;
   }

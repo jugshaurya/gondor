@@ -23,6 +23,11 @@ class UserForm extends BaseModelForm {
   onUpdate() {
     return new User(this.instance).update(this.body);
   }
+
+  @requireInstance
+  onRestore() {
+    return new User(this.instance).restore();
+  }
 }
 
 export default UserForm;
